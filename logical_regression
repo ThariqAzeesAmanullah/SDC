@@ -1,0 +1,70 @@
+import numpy as np
+import pandas as pd
+import re
+import string
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from google.colab import files
+import io
+
+# 📦 Upload file
+uploaded = files.upload()
+
+# ✅ Get filename
+filename = list(uploaded.keys())[0]
+
+# 🧾 Read the CSV
+try:
+    df = pd.read_csv(io.BytesIO(uploaded[filename]), encoding='utf-8')
+except Exception as e:
+    print("❌ Error reading file:", e)
+    raise
+
+# ✅ Check and select required columns
+if "Label" not in df.columns or "Message" not in df.columns:
+    raise ValueError("❌ CSV must contain 'Label' and 'Message' columns.")
+
+df = df[['Label', 'Message']]
+
+# ✅ Encode labels: ham = 0, spam = 1
+df['Label'] = df['Label'].map({'ham': 0, 'spam': 1})
+
+# 🔧 Preprocess the text
+def preprocess_text(text):
+    text = text.lower()
+    text = re.sub(f"[{re.escape(string.punctuation)}]", "", text)
+    return text
+
+df['Message'] = df['Message'].astype(str).apply(preprocess_text)
+
+# 🎯 Features & labels
+X = df['Message']
+y = df['Label']
+
+# 📊 TF-IDF Vectorization
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(X)
+
+# 🎯 Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 🧠 Train the model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# 📈 Evaluate
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"\n✅ Model Accuracy: {accuracy:.2f}")
+
+# 🔮 Spam Prediction
+while True:
+    new_message = input("\n✉️ Enter a message to classify (or type 'exit' to quit): ")
+    if new_message.lower() == 'exit':
+        break
+    processed = preprocess_text(new_message)
+    vectorized = vectorizer.transform([processed])
+    prediction = model.predict(vectorized)
+    print(f"🔍 Prediction: {'📛 Spam' if prediction[0] == 1 else '✅ Not Spam'}")
