@@ -1,0 +1,47 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Sample data to simulate uploaded CSV
+data = {
+    "Stock Price ($)": [100, 101, 102.5, 103, 104.5, 106, 107.5, 108, 109.5, 111]
+}
+df = pd.DataFrame(data)
+
+# Convert date to numeric days
+df["Day"] = np.arange(len(df))
+
+# Features and target
+X = df[["Day"]]
+y = df["Stock Price ($)"]
+
+# Train/test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Model training
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Predict future day
+future_day = 15
+future_price = model.predict(pd.DataFrame([[future_day]], columns=["Day"]))
+print(f"\n📊 Predicted Stock Price for Day {future_day}: ${future_price[0]:,.2f}")
+
+# Evaluate
+y_pred = model.predict(X_test)
+print(f"\n📊 Model Evaluation Metrics:")
+print(f"MSE: {mean_squared_error(y_test, y_pred):.2f}")
+print(f"R²: {r2_score(y_test, y_pred):.2f}")
+
+# Plot
+plt.figure(figsize=(10,6))
+plt.scatter(X_test, y_test, color='blue', label='Actual Prices')
+plt.plot(X_test, y_pred, color='red', label='Predicted Prices')
+plt.title('Actual vs Predicted Stock Prices')
+plt.xlabel('Day')
+plt.ylabel('Stock Price ($)')
+plt.legend()
+plt.show()
