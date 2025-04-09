@@ -1,0 +1,28 @@
+# Install the required package
+!pip install googletrans==4.0.0-rc1
+
+from googletrans import Translator
+from googletrans.gtoken import TokenAcquirer
+import googletrans
+
+# Initialize translator
+translator = Translator()
+
+# Supported language codes (for better guidance)
+supported_langs = googletrans.LANGUAGES
+
+# 🌐 User input
+text = input("📝 Enter text to translate: ")
+target_lang = input("🌍 Enter target language code (e.g., 'es' for Spanish, 'fr' for French): ").strip().lower()
+
+# ✅ Validate language code
+if target_lang not in supported_langs:
+    print("❌ Invalid language code! Please use a valid one from this list:")
+    print(", ".join(sorted(supported_langs.keys())))
+else:
+    try:
+        # 🔁 Translate
+        translation = translator.translate(text, dest=target_lang)
+        print(f"\n🔡 Translated Text ({target_lang}): {translation.text}")
+    except Exception as e:
+        print("❌ Translation failed:", e)
